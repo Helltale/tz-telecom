@@ -11,18 +11,19 @@ CREATE TABLE products (
     id SERIAL PRIMARY KEY,
     description TEXT,
     tags TEXT[],
-    quantity INTEGER NOT NULL
+    quantity INTEGER NOT NULL,
+    price NUMERIC NOT NULL DEFAULT 0
 );
 
 CREATE TABLE orders (
     id SERIAL PRIMARY KEY,
-    user_id INTEGER REFERENCES users(id),
-    created_at TIMESTAMP
+    user_id INTEGER NOT NULL REFERENCES users(id),
+    created_at TIMESTAMP NOT NULL DEFAULT now()
 );
 
 CREATE TABLE order_items (
-    order_id INTEGER REFERENCES orders(id),
-    product_id INTEGER REFERENCES products(id),
-    quantity INTEGER,
-    price NUMERIC
+    order_id INTEGER NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    product_id INTEGER NOT NULL REFERENCES products(id),
+    quantity INTEGER NOT NULL,
+    price NUMERIC NOT NULL
 );
