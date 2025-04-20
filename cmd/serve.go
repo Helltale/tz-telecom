@@ -10,21 +10,38 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/getsentry/sentry-go"
+	"github.com/spf13/cobra"
+
 	"github.com/Helltale/tz-telecom/config"
 	"github.com/Helltale/tz-telecom/internal/delivery/httpdelivery"
 	"github.com/Helltale/tz-telecom/internal/repository/postgresrepo"
 	"github.com/Helltale/tz-telecom/internal/usecase"
 	"github.com/Helltale/tz-telecom/internal/utils"
-	"github.com/spf13/cobra"
 )
 
 var serveCmd = &cobra.Command{
 	Use:   "serve",
 	Short: "Run HTTP server",
 	Run: func(cmd *cobra.Command, args []string) {
+
 		cfg, err := config.Load()
 		if err != nil {
 			log.Fatalf("config error: %v", err)
+		}
+
+		// initialize sentry if DSN is provided
+		if cfg.SentryDSN != "" {
+			err := sentry.Init(sentry.ClientOptions{
+				Dsn:              cfg.SentryDSN,
+				Environment:      cfg.SentryEnv,
+				TracesSampleRate: cfg.SentrySampleRate,
+			})
+			if err != nil {
+				log.Fatalf("sentry init failed: %v", err)
+			}
+			defer sentry.Flush(2 * time.Second)
+			log.Println("Sentry initialized")
 		}
 
 		db, err := utils.ConnectWithRetry(cfg, func(cfg *config.Config) (*sql.DB, error) {
@@ -35,15 +52,21 @@ var serveCmd = &cobra.Command{
 		}
 		defer db.Close()
 
+		// repositories
 		userRepo := postgresrepo.NewUserRepo(db)
 		orderRepo := postgresrepo.NewOrderRepo(db)
 
+		// use cases
 		userUC := usecase.NewUserUseCase(userRepo)
 		orderUC := usecase.NewOrderUseCase(orderRepo)
+
+		// worker
 		orderWorker := usecase.NewOrderWorker(orderUC, cfg.WorkerQueueLen)
 
+		// router
 		router := httpdelivery.NewRouter(userUC, orderWorker)
 
+		// server
 		srv := &http.Server{
 			Addr:         ":" + cfg.AppPort,
 			Handler:      router,
@@ -52,10 +75,11 @@ var serveCmd = &cobra.Command{
 			IdleTimeout:  cfg.GetIdleTimeout(),
 		}
 
+		// start server
 		go func() {
-			log.Printf("Listening on %s", cfg.AppPort)
+			log.Printf("Listening on port %s...", cfg.AppPort)
 			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
-				log.Fatalf("ListenAndServe: %v", err)
+				log.Fatalf("HTTP server error: %v", err)
 			}
 		}()
 
@@ -65,7 +89,9 @@ var serveCmd = &cobra.Command{
 
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer cancel()
-		srv.Shutdown(ctx)
+		if err := srv.Shutdown(ctx); err != nil {
+			log.Fatalf("Shutdown failed: %v", err)
+		}
 		log.Println("Server gracefully stopped")
 	},
 }

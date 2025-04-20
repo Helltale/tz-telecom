@@ -4,6 +4,8 @@ import (
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/getsentry/sentry-go"
 )
 
 func Logging(next http.Handler) http.Handler {
@@ -19,6 +21,13 @@ func Recover(next http.Handler) http.Handler {
 		defer func() {
 			if rec := recover(); rec != nil {
 				log.Printf("panic: %v", rec)
+
+				if hub := sentry.GetHubFromContext(r.Context()); hub != nil {
+					hub.Recover(rec)
+				} else {
+					sentry.CaptureException(rec.(error)) // fallback
+				}
+
 				http.Error(w, "internal server error", http.StatusInternalServerError)
 			}
 		}()
