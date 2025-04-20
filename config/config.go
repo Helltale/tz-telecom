@@ -30,6 +30,8 @@ type Config struct {
 	SentryDSN        string  `env:"SENTRY_DSN"`
 	SentryEnv        string  `env:"SENTRY_ENV" envDefault:"development"`
 	SentrySampleRate float64 `env:"SENTRY_SAMPLE_RATE" envDefault:"1.0" validate:"gte=0,lte=1"`
+
+	OtelExporterEndpoint string `env:"OTEL_EXPORTER_OTLP_ENDPOINT" envDefault:"http://localhost:4318" validate:"url"`
 }
 
 var Conf Config

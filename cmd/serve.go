@@ -15,6 +15,7 @@ import (
 
 	"github.com/Helltale/tz-telecom/config"
 	"github.com/Helltale/tz-telecom/internal/delivery/httpdelivery"
+	"github.com/Helltale/tz-telecom/internal/observability"
 	"github.com/Helltale/tz-telecom/internal/repository/postgresrepo"
 	"github.com/Helltale/tz-telecom/internal/usecase"
 	"github.com/Helltale/tz-telecom/internal/utils"
@@ -29,6 +30,13 @@ var serveCmd = &cobra.Command{
 		if err != nil {
 			log.Fatalf("config error: %v", err)
 		}
+
+		// init opentelemetry tracer
+		shutdown, err := observability.InitTracer("tz-telecom", cfg.OtelExporterEndpoint)
+		if err != nil {
+			log.Fatalf("failed to init tracer: %v", err)
+		}
+		defer shutdown(context.Background())
 
 		// initialize sentry if DSN is provided
 		if cfg.SentryDSN != "" {
