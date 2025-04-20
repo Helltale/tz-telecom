@@ -21,7 +21,7 @@ export DB_RETRY_MAX_DELAY ?= 10
 export DB_RETRY_MULTIPLIER ?= 2
 export DB_RETRY_MAX_ATTEMPTS ?= 5
 
-export SENTRY_DSN ?=
+export SENTRY_DSN ?=https://abc123@o0.ingest.sentry.io/1234567
 export SENTRY_ENV ?=development
 export SENTRY_SAMPLE_RATE ?=1.0
 
