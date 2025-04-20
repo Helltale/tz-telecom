@@ -24,7 +24,7 @@ func (h *UserHandler) RegisterUserHandler(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	// Простая валидация
+	// simple req validation
 	if req.FirstName == "" || req.LastName == "" {
 		http.Error(w, "first and last name required", http.StatusBadRequest)
 		return

@@ -10,7 +10,6 @@ import (
 func NewRouter(userUC usecase.UserUseCaseInterface, orderWorker *usecase.OrderWorker) http.Handler {
 	mux := http.NewServeMux()
 
-	// Создаём хендлеры с зависимостями
 	userHandler := NewUserHandler(userUC)
 	orderHandler := NewOrderHandler(orderWorker)
 

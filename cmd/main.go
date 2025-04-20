@@ -32,18 +32,14 @@ func main() {
 	}
 	defer db.Close()
 
-	// Репозитории
 	userRepo := postgresrepo.NewUserRepo(db)
 	orderRepo := postgresrepo.NewOrderRepo(db)
 
-	// UseCases
 	userUC := usecase.NewUserUseCase(userRepo)
 	orderUC := usecase.NewOrderUseCase(orderRepo)
 
-	// OrderWorker
 	orderWorker := usecase.NewOrderWorker(orderUC, 10)
 
-	// Роутер с внедрением зависимостей
 	router := httpdelivery.NewRouter(userUC, orderWorker)
 
 	srv := &http.Server{
@@ -61,12 +57,10 @@ func main() {
 		}
 	}()
 
-	// Ожидаем сигнал завершения
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
 	<-quit
 
-	// Завершаем сервер
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	srv.Shutdown(ctx)

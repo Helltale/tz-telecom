@@ -18,7 +18,7 @@ func (r OrderRequest) ToDomainItems() []domain.OrderItem {
 		items = append(items, domain.OrderItem{
 			ProductID: i.ProductID,
 			Quantity:  i.Quantity,
-			// price будет заполняться в usecase, не здесь
+			// price will be filled in usecase, not here
 		})
 	}
 	return items

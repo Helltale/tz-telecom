@@ -39,7 +39,7 @@ func (r *OrderRepo) Create(ctx context.Context, order *domain.Order) error {
 	}
 	defer tx.Rollback()
 
-	// Вставка заказа
+	// inserting an order
 	err = tx.QueryRowContext(ctx, `
 		INSERT INTO orders (user_id, created_at)
 		VALUES ($1, $2)
@@ -49,9 +49,9 @@ func (r *OrderRepo) Create(ctx context.Context, order *domain.Order) error {
 		return err
 	}
 
-	// Вставка продуктов и обновление склада
+	// inserting products and updating the warehouse
 	for _, item := range order.Items {
-		// Проверка и обновление склада
+		// check and update warehouse
 		res, err := tx.ExecContext(ctx, `
 			UPDATE products
 			SET quantity = quantity - $1
@@ -65,7 +65,7 @@ func (r *OrderRepo) Create(ctx context.Context, order *domain.Order) error {
 			return errors.New("not enough stock")
 		}
 
-		// Вставка записи в order_items
+		// insert record into order_items
 		_, err = tx.ExecContext(ctx, `
 			INSERT INTO order_items (order_id, product_id, quantity, price)
 			VALUES ($1, $2, $3, $4)
