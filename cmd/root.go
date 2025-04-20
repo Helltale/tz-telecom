@@ -8,7 +8,7 @@ import (
 
 var rootCmd = &cobra.Command{
 	Use:   "tz-telecom",
-	Short: "CLI for tz-telecom project",
+	Short: "simple service",
 }
 
 func Execute() {
