@@ -8,4 +8,4 @@ curl -X POST http://localhost:8080/users/register -H "Content-Type: application/
 curl -X POST http://localhost:8080/users/register -H "Content-Type: application/json" -d '{"first_name":"Tommy","last_name":"Teen","age":15,"is_married":false,"password":"validpass"}'
 
 Создание заказа
-curl -X POST http://localhost:8080/orders -H "Content-Type: application/json" -d '{"user_id":1,"items":[{"product_id":1,"quantity":2,"price":99.99}]}'
+curl -X POST http://localhost:8080/orders -H "Content-Type: application/json" -d '{"user_id":1,"items":[{"product_id":1,"quantity":2}]}'
