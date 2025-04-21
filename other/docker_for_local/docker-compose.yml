@@ -1,0 +1,26 @@
+services:
+  db:
+    image: postgres:15
+    container_name: tz-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: tz_telecom
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    container_name: jaeger
+    ports:
+      - "16686:16686"  # web ui
+      - "4318:4318"    # otlp http
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      LOG_LEVEL: debug
+
+volumes:
+  pgdata:

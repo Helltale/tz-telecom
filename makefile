@@ -1,7 +1,7 @@
 # ========== CONFIGURATION ==========
 APP_NAME=tz-telecom
 GO_CMD=go
-MAIN_PACKAGE=./cmd/main.go
+MAIN_PACKAGE=./cmd/app/main.go
 ENV_FILE=.env
 
 export APP_PORT ?= 8080
@@ -25,7 +25,7 @@ export SENTRY_DSN ?= https://abc123@o0.ingest.sentry.io/1234567
 export SENTRY_ENV ?= development
 export SENTRY_SAMPLE_RATE ?= 1.0
 
-export OTEL_EXPORTER_OTLP_ENDPOINT ?= http://localhost:4318
+export OTEL_EXPORTER_OTLP_ENDPOINT ?= localhost:4318
 
 
 # ========== COMMANDS ==========

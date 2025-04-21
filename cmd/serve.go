@@ -49,7 +49,7 @@ var serveCmd = &cobra.Command{
 				log.Fatalf("sentry init failed: %v", err)
 			}
 			defer sentry.Flush(2 * time.Second)
-			log.Println("Sentry initialized")
+			log.Println("sentry initialized")
 		}
 
 		db, err := utils.ConnectWithRetry(cfg, func(cfg *config.Config) (*sql.DB, error) {

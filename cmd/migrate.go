@@ -31,7 +31,7 @@ var migrateCmd = &cobra.Command{
 			log.Fatalf("migration error: %v", err)
 		}
 
-		log.Println("Migrations applied successfully")
+		log.Println("migrations applied successfully")
 	},
 }
 

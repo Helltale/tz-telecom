@@ -45,7 +45,7 @@ services:
     image: jaegertracing/all-in-one:1.50
     container_name: jaeger
     ports:
-      - "16686:16686"  # web UI
+      - "16686:16686"  # web ui
       - "4318:4318"    # otlp http
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
