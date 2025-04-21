@@ -25,7 +25,7 @@ export SENTRY_DSN ?= https://abc123@o0.ingest.sentry.io/1234567
 export SENTRY_ENV ?= development
 export SENTRY_SAMPLE_RATE ?= 1.0
 
- export OTEL_EXPORTER_OTLP_ENDPOINT ?= http://localhost:4318
+export OTEL_EXPORTER_OTLP_ENDPOINT ?= http://localhost:4318
 
 
 # ========== COMMANDS ==========
@@ -69,5 +69,6 @@ env:
 	@echo "SENTRY_DSN=$(SENTRY_DSN)"
 	@echo "SENTRY_ENV=$(SENTRY_ENV)"
 	@echo "SENTRY_SAMPLE_RATE=$(SENTRY_SAMPLE_RATE)"
+	@echo "OTEL_EXPORTER_OTLP_ENDPOINT=$(OTEL_EXPORTER_OTLP_ENDPOINT)"
 
 run: deps migrate serve

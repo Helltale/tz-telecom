@@ -1,4 +1,4 @@
-package usecase_test
+package tests
 
 import (
 	"context"
@@ -11,30 +11,25 @@ import (
 )
 
 type mockOrderRepo struct {
-	inStockFunc       func(id int64, qty int) bool
-	priceFunc         func(id int64) (float64, error)
-	createShouldError bool
+	stock        bool
+	stockErr     error
+	price        float64
+	priceErr     error
+	createCalled bool
+	createErr    error
 }
 
 func (m *mockOrderRepo) ProductInStock(ctx context.Context, id int64, qty int) (bool, error) {
-	if m.inStockFunc != nil {
-		return m.inStockFunc(id, qty), nil
-	}
-	return true, nil
+	return m.stock, m.stockErr
 }
 
 func (m *mockOrderRepo) GetProductPrice(ctx context.Context, id int64) (float64, error) {
-	if m.priceFunc != nil {
-		return m.priceFunc(id)
-	}
-	return 100.0, nil
+	return m.price, m.priceErr
 }
 
-func (m *mockOrderRepo) Create(ctx context.Context, order *domain.Order) error {
-	if m.createShouldError {
-		return errors.New("create failed")
-	}
-	return nil
+func (m *mockOrderRepo) Create(ctx context.Context, o *domain.Order) error {
+	m.createCalled = true
+	return m.createErr
 }
 
 func TestCreateOrder(t *testing.T) {
@@ -46,43 +41,33 @@ func TestCreateOrder(t *testing.T) {
 	}{
 		{
 			name: "valid order",
-			repo: &mockOrderRepo{},
-			items: []domain.OrderItem{
-				{ProductID: 1, Quantity: 2},
+			repo: &mockOrderRepo{
+				stock: true, price: 123.45,
 			},
+			items: []domain.OrderItem{{ProductID: 1, Quantity: 2}},
 		},
 		{
-			name: "product out of stock",
+			name: "out of stock",
 			repo: &mockOrderRepo{
-				inStockFunc: func(id int64, qty int) bool {
-					return false
-				},
+				stock: false,
 			},
-			items: []domain.OrderItem{
-				{ProductID: 2, Quantity: 5},
-			},
+			items:       []domain.OrderItem{{ProductID: 1, Quantity: 1}},
 			expectError: "product out of stock",
 		},
 		{
 			name: "price fetch error",
 			repo: &mockOrderRepo{
-				priceFunc: func(id int64) (float64, error) {
-					return 0, errors.New("price not found")
-				},
+				stock: true, priceErr: errors.New("price error"),
 			},
-			items: []domain.OrderItem{
-				{ProductID: 3, Quantity: 1},
-			},
-			expectError: "price not found",
+			items:       []domain.OrderItem{{ProductID: 1, Quantity: 1}},
+			expectError: "price error",
 		},
 		{
-			name: "create error",
+			name: "create failed",
 			repo: &mockOrderRepo{
-				createShouldError: true,
+				stock: true, price: 99.99, createErr: errors.New("create failed"),
 			},
-			items: []domain.OrderItem{
-				{ProductID: 1, Quantity: 1},
-			},
+			items:       []domain.OrderItem{{ProductID: 1, Quantity: 1}},
 			expectError: "create failed",
 		},
 	}
@@ -91,11 +76,11 @@ func TestCreateOrder(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			uc := usecase.NewOrderUseCase(tt.repo)
 			err := uc.CreateOrder(context.Background(), 42, tt.items)
-
 			if tt.expectError != "" {
 				assert.EqualError(t, err, tt.expectError)
 			} else {
 				assert.NoError(t, err)
+				assert.True(t, tt.repo.createCalled)
 			}
 		})
 	}

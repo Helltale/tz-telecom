@@ -1,4 +1,4 @@
-package usecase_test
+package tests
 
 import (
 	"context"
@@ -10,14 +10,13 @@ import (
 )
 
 type mockUserRepo struct {
-	saveFunc func(ctx context.Context, u *domain.User) error
+	savedUser *domain.User
+	saveErr   error
 }
 
 func (m *mockUserRepo) Save(ctx context.Context, u *domain.User) error {
-	if m.saveFunc != nil {
-		return m.saveFunc(ctx, u)
-	}
-	return nil
+	m.savedUser = u
+	return m.saveErr
 }
 
 func TestRegisterUser(t *testing.T) {
@@ -53,13 +52,14 @@ func TestRegisterUser(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			repo := &mockUserRepo{}
 			uc := usecase.NewUserUseCase(repo)
-
 			err := uc.RegisterUser(context.Background(), &tt.input)
 
 			if tt.expectError != "" {
 				assert.EqualError(t, err, tt.expectError)
 			} else {
 				assert.NoError(t, err)
+				assert.NotNil(t, repo.savedUser)
+				assert.NotEqual(t, "", repo.savedUser.Password) // must be hashing
 			}
 		})
 	}
