@@ -85,7 +85,7 @@ var serveCmd = &cobra.Command{
 
 		// start server
 		go func() {
-			log.Printf("Listening on port %s...", cfg.AppPort)
+			log.Printf("🐧 listening on port %s...", cfg.AppPort)
 			if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 				log.Fatalf("HTTP server error: %v", err)
 			}
