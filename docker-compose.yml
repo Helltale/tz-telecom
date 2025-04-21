@@ -1,0 +1,55 @@
+services:
+  app:
+    build: .
+    container_name: tz-telecom
+    depends_on:
+      - db
+      - jaeger
+    ports:
+      - "8080:8080"
+    environment:
+      APP_PORT: 8080
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_USER: postgres
+      DB_PASS: secret
+      DB_NAME: tz_telecom
+      DB_SSLMODE: disable
+
+      DB_RETRY_INITIAL_DELAY: 1
+      DB_RETRY_MAX_DELAY: 10
+      DB_RETRY_MULTIPLIER: 2
+      DB_RETRY_MAX_ATTEMPTS: 5
+
+      APP_READ_TIMEOUT: 10
+      APP_WRITE_TIMEOUT: 10
+      APP_IDLE_TIMEOUT: 120
+      APP_WORKER_QUEUE_LEN: 100
+
+      OTEL_EXPORTER_OTLP_ENDPOINT: jaeger:4318
+
+  db:
+    image: postgres:15
+    container_name: tz-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: tz_telecom
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    container_name: jaeger
+    ports:
+      - "16686:16686"  # web UI
+      - "4318:4318"    # otlp http
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+      LOG_LEVEL: debug
+
+volumes:
+  pgdata:

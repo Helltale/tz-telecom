@@ -1,0 +1,11 @@
+Регистрация пользователя (успешная)
+curl -X POST http://localhost:8080/users/register -H "Content-Type: application/json" -d '{"first_name":"Alice","last_name":"Johnson","age":25,"is_married":true,"password":"strongpass123"}'
+
+Регистрация: короткий пароль
+curl -X POST http://localhost:8080/users/register -H "Content-Type: application/json" -d '{"first_name":"Bob","last_name":"Short","age":30,"is_married":false,"password":"123"}'
+
+Регистрация: пользователь младше 18
+curl -X POST http://localhost:8080/users/register -H "Content-Type: application/json" -d '{"first_name":"Tommy","last_name":"Teen","age":15,"is_married":false,"password":"validpass"}'
+
+Создание заказа
+curl -X POST http://localhost:8080/orders -H "Content-Type: application/json" -d '{"user_id":1,"items":[{"product_id":1,"quantity":2,"price":99.99}]}'

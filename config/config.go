@@ -22,8 +22,8 @@ type Config struct {
 	IdleTimeout    int `env:"APP_IDLE_TIMEOUT" envDefault:"120" validate:"required,gte=10"`
 	WorkerQueueLen int `env:"APP_WORKER_QUEUE_LEN" envDefault:"100" validate:"required,gte=1"`
 
-	DBRetryInitialDelay int `env:"DB_RETRY_INITIAL_DELAY" envDefault:"1" validate:"required,gte=1"` // сек
-	DBRetryMaxDelay     int `env:"DB_RETRY_MAX_DELAY" envDefault:"10" validate:"required,gte=1"`    // сек
+	DBRetryInitialDelay int `env:"DB_RETRY_INITIAL_DELAY" envDefault:"1" validate:"required,gte=1"` // sec
+	DBRetryMaxDelay     int `env:"DB_RETRY_MAX_DELAY" envDefault:"10" validate:"required,gte=1"`    // sec
 	DBRetryMultiplier   int `env:"DB_RETRY_MULTIPLIER" envDefault:"2" validate:"required,gte=1"`
 	DBRetryMaxAttempts  int `env:"DB_RETRY_MAX_ATTEMPTS" envDefault:"5" validate:"required,gte=1"`
 
