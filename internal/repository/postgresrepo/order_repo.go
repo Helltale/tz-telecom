@@ -39,7 +39,6 @@ func (r *OrderRepo) Create(ctx context.Context, order *domain.Order) error {
 	}
 	defer tx.Rollback()
 
-	// inserting an order
 	err = tx.QueryRowContext(ctx, `
 		INSERT INTO orders (user_id, created_at)
 		VALUES ($1, $2)
@@ -49,9 +48,7 @@ func (r *OrderRepo) Create(ctx context.Context, order *domain.Order) error {
 		return err
 	}
 
-	// inserting products and updating the warehouse
 	for _, item := range order.Items {
-		// check and update warehouse
 		res, err := tx.ExecContext(ctx, `
 			UPDATE products
 			SET quantity = quantity - $1
@@ -65,11 +62,15 @@ func (r *OrderRepo) Create(ctx context.Context, order *domain.Order) error {
 			return errors.New("not enough stock")
 		}
 
-		// insert record into order_items
+		price, err := r.getCurrentPriceTx(ctx, tx, item.ProductID)
+		if err != nil {
+			return err
+		}
+
 		_, err = tx.ExecContext(ctx, `
 			INSERT INTO order_items (order_id, product_id, quantity, price)
 			VALUES ($1, $2, $3, $4)
-		`, order.ID, item.ProductID, item.Quantity, item.Price)
+		`, order.ID, item.ProductID, item.Quantity, price)
 		if err != nil {
 			return err
 		}
@@ -81,10 +82,50 @@ func (r *OrderRepo) Create(ctx context.Context, order *domain.Order) error {
 func (r *OrderRepo) GetProductPrice(ctx context.Context, id int64) (float64, error) {
 	var price float64
 	err := r.db.QueryRowContext(ctx, `
-		SELECT price FROM products WHERE id = $1
+		SELECT price FROM product_price_history
+		WHERE product_id = $1 AND valid_to IS NULL
 	`, id).Scan(&price)
 	if err != nil {
 		return 0, err
 	}
 	return price, nil
+}
+
+func (r *OrderRepo) getCurrentPriceTx(ctx context.Context, tx *sql.Tx, id int64) (float64, error) {
+	var price float64
+	err := tx.QueryRowContext(ctx, `
+		SELECT price FROM product_price_history
+		WHERE product_id = $1 AND valid_to IS NULL
+	`, id).Scan(&price)
+	if err != nil {
+		return 0, err
+	}
+	return price, nil
+}
+
+func (r *OrderRepo) UpdateProductPrice(ctx context.Context, productID int64, newPrice float64) error {
+	tx, err := r.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx, `
+		UPDATE product_price_history
+		SET valid_to = now()
+		WHERE product_id = $1 AND valid_to IS NULL
+	`, productID)
+	if err != nil {
+		return err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+		INSERT INTO product_price_history (product_id, price, valid_from)
+		VALUES ($1, $2, now())
+	`, productID, newPrice)
+	if err != nil {
+		return err
+	}
+
+	return tx.Commit()
 }
